@@ -27,7 +27,7 @@ backend/.coverage
 backend/coverage.xml
 backend/htmlcov/
 backend/data/*
-backend/api/output/*
+backend/app/output/*
 # Logs and temp files
 *.log
 *.out
