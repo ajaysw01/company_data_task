@@ -4,8 +4,7 @@ import { fetchCompanyData } from "../services/api";
 const AggregatedDataTable = () => {
   const [data, setData] = useState(null);
   const [currentPage, setCurrentPage] = useState({ company: 1, country: 1, type: 1 });
-  const [pageSize] = useState(10); // Rows per page
-
+  const [pageSize] = useState(10); 
   useEffect(() => {
     const getData = async () => {
       try {

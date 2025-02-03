@@ -3,10 +3,9 @@ import json
 import polars as pl
 import logging
 from datetime import datetime
-from typing import Dict
 
-logger = logging.getLogger(__name__)
-
+logger = logging.getLogger("Process Csv Service")
+# old code
 async def process_csv_file(file_path: str) -> str:
     try:
         logger.info(f"Starting CSV processing for file: {file_path}")
@@ -121,3 +120,85 @@ async def process_csv_file(file_path: str) -> str:
     except Exception as e:
         logger.error(f"Error in process_csv_file: {str(e)}")
         raise
+
+# new code
+def classify_credit_score(score):
+    if score >= 85:
+        return "A"
+    elif 50 <= score < 85:
+        return "B"
+    elif 35 <= score < 50:
+        return "C"
+    elif 0 <= score < 35:
+        return "D"
+    else:
+        return "E"
+
+
+def classify_credit_limit(limit):
+    if limit >= 250000:
+        return "A"
+    elif 100000 <= limit < 250000:
+        return "B"
+    elif 50000 <= limit < 100000:
+        return "C"
+    elif limit >= 0:
+        return "D"
+    else:
+        return "E"
+
+
+def classify_turnover(revenue):
+    if revenue >= 100000:
+        return "A"
+    elif 50000 <= revenue < 100000:
+        return "B"
+    elif 0 <= revenue < 50000:
+        return "C"
+    else:
+        return "D"
+
+
+def classify_status(is_active):
+    return "Active" if is_active else "Inactive"
+
+
+async def process_csv_file_v2(file_path: str) -> dict:
+    logger.info(f"Processing CSV file: {file_path}")
+
+    df = pl.scan_csv(
+        file_path,
+        # streaming = False,
+        # rechunk=True,
+        # low_memory=False,
+        # n_threads=None
+    )
+
+    classified_df = df.with_columns([
+        pl.col("credit_score").map_elements(classify_credit_score, return_dtype=pl.Utf8).fill_null(0).alias("credit_score_type"),
+        pl.col("credit_limit").map_elements(classify_credit_limit, return_dtype=pl.Utf8).fill_null(0).alias("credit_limit_type"),
+        pl.col("estimated_revenue").map_elements(classify_turnover, return_dtype=pl.Utf8).fill_null(0).alias("turnover_type"),
+        pl.col("is_active").map_elements(classify_status, return_dtype=pl.Utf8).fill_null("False").alias("status")
+    ])
+
+    country_stats = classified_df.group_by("country_code").agg([
+        pl.count().alias("Total Companies"),
+        pl.col("status").filter(pl.col("status") == "Active").count().alias("Active Companies"),
+        pl.col("status").filter(pl.col("status") == "Inactive").count().alias("Inactive Companies"),
+    ])
+
+    company_data = classified_df.select([
+        pl.col("cs_company_id").alias("safeNumber"),
+        "matched_name",
+        "credit_score_type",
+        "credit_limit_type",
+        "turnover_type",
+        "status",
+        "country_code",
+        "sector"
+    ])
+
+    return {
+        "company_data": company_data,
+        "country_stats": country_stats
+    }

@@ -3,10 +3,11 @@ import json
 from fastapi import HTTPException, APIRouter
 from fastapi.responses import JSONResponse
 import logging
-from  ..services.processing_csv import process_csv_file
+from ..services.processing_csv import process_csv_file, process_csv_file_v2
+
+logger = logging.getLogger("Process Csv Routes")
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
 
 @router.get("/process_csv")
 async def process_csv():
@@ -25,7 +26,7 @@ async def process_csv():
             )
 
         output_file = await process_csv_file(file_path)
-            
+
         with open(output_file, "r") as f:
             data = json.load(f)
 
@@ -47,29 +48,44 @@ async def process_csv():
             detail=f"Unexpected error occurred: {str(e)}"
         )
 
-# @router.get("/process_csv")
-# async def process_csv_route():
-#     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..')) 
-#     data_dir = os.path.join(project_root, 'app', 'api', 'data')  
-    
-#     # Define file paths
-#     file_paths = [
-#         os.path.join(data_dir, '20k Financial Data.csv'),
-#         os.path.join(data_dir, '30k Financial Data.csv')
-#     ]
 
+#new file
+@router.get("/process_csv_v2")
+async def process_csv_v2():
+    try:
+        logger.info("Starting process_csv_v2 route")
 
-#     for file_path in file_paths:
-#         if not os.path.exists(file_path):
-#             raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
+        data_dir = os.path.join(project_root, 'backend', 'data')
+        file_path = os.path.join(data_dir, '20k Financial Data.csv')
 
-#     try:
-       
-#         output_file = process_csv(file_paths)
-#     except ValueError as e:
-#         raise HTTPException(status_code=400, detail=str(e))
+        logger.info(f"Processing file at: {file_path}")
 
-#     with open(output_file, "r") as f:
-#         data = json.load(f) 
+        if not os.path.exists(file_path):
+            logger.error(f"File not found: {file_path}")
+            raise HTTPException(
+                status_code=404,
+                detail=f"File not found at location: {file_path}"
+            )
 
-#     return JSONResponse(content=data)
+        logger.info("Calling process_csv_file_v2 service")
+        processed_data = await process_csv_file_v2(file_path)
+
+        logger.info("Collecting processed data")
+        company_data = processed_data["company_data"].collect().to_dicts()
+        country_stats = processed_data["country_stats"].collect().to_dicts()
+
+        logger.info("Returning processed data successfully")
+        return {
+            "status": "success",
+            "data": {
+                "company_data": company_data,
+                "country_stats": country_stats
+            }
+        }
+    except Exception as e:
+        logger.error(f"Unexpected error: {str(e)}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Unexpected error occurred: {str(e)}"
+        )
