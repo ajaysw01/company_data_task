@@ -123,19 +123,21 @@ async def process_csv_file(file_path: str) -> str:
 
 # new code
 def classify_credit_score(score):
+    if score is None:
+        return "Unknown"
     if score >= 85:
         return "A"
     elif 50 <= score < 85:
         return "B"
     elif 35 <= score < 50:
         return "C"
-    elif 0 <= score < 35:
+    elif score < 35:
         return "D"
-    else:
-        return "E"
-
+    return "E"
 
 def classify_credit_limit(limit):
+    if limit is None:
+        return "Unknown"
     if limit >= 250000:
         return "A"
     elif 100000 <= limit < 250000:
@@ -144,41 +146,32 @@ def classify_credit_limit(limit):
         return "C"
     elif limit >= 0:
         return "D"
-    else:
-        return "E"
-
+    return "E"
 
 def classify_turnover(revenue):
+    if revenue is None:
+        return "Unknown"
     if revenue >= 100000:
         return "A"
     elif 50000 <= revenue < 100000:
         return "B"
-    elif 0 <= revenue < 50000:
+    elif revenue < 50000:
         return "C"
-    else:
-        return "D"
-
+    return "D"
 
 def classify_status(is_active):
     return "Active" if is_active else "Inactive"
 
-
 async def process_csv_file_v2(file_path: str) -> dict:
     logger.info(f"Processing CSV file: {file_path}")
 
-    df = pl.scan_csv(
-        file_path,
-        # streaming = False,
-        # rechunk=True,
-        # low_memory=False,
-        # n_threads=None
-    )
+    df = pl.scan_csv(file_path)
 
     classified_df = df.with_columns([
-        pl.col("credit_score").map_elements(classify_credit_score, return_dtype=pl.Utf8).fill_null(0).alias("credit_score_type"),
-        pl.col("credit_limit").map_elements(classify_credit_limit, return_dtype=pl.Utf8).fill_null(0).alias("credit_limit_type"),
-        pl.col("estimated_revenue").map_elements(classify_turnover, return_dtype=pl.Utf8).fill_null(0).alias("turnover_type"),
-        pl.col("is_active").map_elements(classify_status, return_dtype=pl.Utf8).fill_null("False").alias("status")
+        pl.col("credit_score").fill_null(0).map_elements(classify_credit_score, return_dtype=pl.Utf8).alias("credit_score_type"),
+        pl.col("credit_limit").fill_null(0).map_elements(classify_credit_limit, return_dtype=pl.Utf8).alias("credit_limit_type"),
+        pl.col("estimated_revenue").fill_null(0).map_elements(classify_turnover, return_dtype=pl.Utf8).alias("turnover_type"),
+        pl.col("is_active").fill_null(False).map_elements(classify_status, return_dtype=pl.Utf8).alias("status")
     ])
 
     country_stats = classified_df.group_by("country_code").agg([
@@ -199,6 +192,6 @@ async def process_csv_file_v2(file_path: str) -> dict:
     ])
 
     return {
-        "company_data": company_data,
-        "country_stats": country_stats
+        "company_data": company_data.collect().to_dicts(),
+        "country_stats": country_stats.collect().to_dicts()
     }
