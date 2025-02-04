@@ -1,9 +1,10 @@
-import AggregatedDataTable from "./components/aggregated_data_table"
+import CompanyData from "./components/CompanyData"
+
 function App() {
 
   return (
     <>
-    <AggregatedDataTable/>
+    <CompanyData/>
     </>
   )
 }

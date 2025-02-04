@@ -175,10 +175,10 @@ async def process_csv_file_v2(file_path: str) -> dict:
     ])
 
     country_stats = classified_df.group_by("country_code").agg([
-        pl.count().alias("Total Companies"),
-        pl.col("status").filter(pl.col("status") == "Active").count().alias("Active Companies"),
-        pl.col("status").filter(pl.col("status") == "Inactive").count().alias("Inactive Companies"),
-    ])
+                pl.count().alias("Total Companies"),
+                pl.col("status").filter(pl.col("status") == "Active").count().alias("Active Companies"),
+                pl.col("status").filter(pl.col("status") == "Inactive").count().alias("Inactive Companies"),
+            ])
 
     company_data = classified_df.select([
         pl.col("cs_company_id").alias("safeNumber"),
