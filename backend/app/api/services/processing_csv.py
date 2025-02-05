@@ -165,7 +165,7 @@ def classify_status(is_active):
 async def process_csv_file_v2(file_path: str) -> dict:
     logger.info(f"Processing CSV file: {file_path}")
 
-    df = pl.scan_csv(file_path)
+    df = pl.scan_csv(file_path,ignore_errors=True)
 
     classified_df = df.with_columns([
         pl.col("credit_score").fill_null(0).map_elements(classify_credit_score, return_dtype=pl.Utf8).alias("credit_score_type"),
