@@ -4,6 +4,10 @@ import api from "../services/AxiosService";
 const CompanyData = () => {
   const [companyData, setCompanyData] = useState([]);
   const [countryStats, setCountryStats] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  //pagination
+  const itemsPerPage = 20;
 
   useEffect(() => {
     fetchData();
@@ -18,6 +22,9 @@ const CompanyData = () => {
       console.error("Error fetching data:", err);
     }
   };
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = companyData.slice(startIndex, startIndex + itemsPerPage);
 
   return (
     <div>
@@ -36,7 +43,7 @@ const CompanyData = () => {
           </tr>
         </thead>
         <tbody>
-          {companyData.map((company, index) => (
+          {currentItems.map((company, index) => (
             <tr key={index}>
               <td>{company.safeNumber}</td>
               <td>{company.matched_name}</td>
@@ -50,6 +57,20 @@ const CompanyData = () => {
           ))}
         </tbody>
       </table>
+
+      <button
+        disabled={currentPage === 1}
+        onClick={() => setCurrentPage(currentPage - 1)}
+      >
+        Previous
+      </button>
+      <span> Page {currentPage} </span>
+      <button
+        disabled={startIndex + itemsPerPage >= companyData.length}
+        onClick={() => setCurrentPage(currentPage + 1)}
+      >
+        Next
+      </button>
 
       <h2>Country Statistics</h2>
       <table border="1">
