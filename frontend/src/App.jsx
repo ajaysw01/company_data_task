@@ -1,12 +1,11 @@
-import CompanyData from "./components/CompanyData"
+import CompanyData from "./components/CompanyData";
 
 function App() {
-
   return (
     <>
-    <CompanyData/>
+      <CompanyData />
     </>
-  )
+  );
 }
 
-export default App
+export default App;
