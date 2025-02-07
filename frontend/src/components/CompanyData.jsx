@@ -6,8 +6,8 @@ const CompanyData = () => {
   const [countryStats, setCountryStats] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
 
-  //pagination
   const itemsPerPage = 20;
+  const totalPages = Math.ceil(companyData.length / itemsPerPage);
 
   useEffect(() => {
     fetchData();
@@ -58,19 +58,33 @@ const CompanyData = () => {
         </tbody>
       </table>
 
-      <button
-        disabled={currentPage === 1}
-        onClick={() => setCurrentPage(currentPage - 1)}
-      >
-        Previous
-      </button>
-      <span> Page {currentPage} </span>
-      <button
-        disabled={startIndex + itemsPerPage >= companyData.length}
-        onClick={() => setCurrentPage(currentPage + 1)}
-      >
-        Next
-      </button>
+      <nav aria-label="Page navigation">
+        <ul className="pagination">
+          <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+            <button
+              className="page-link"
+              onClick={() => setCurrentPage(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              Previous
+            </button>
+          </li>
+
+          <li
+            className={`page-item ${
+              currentPage === totalPages ? "disabled" : ""
+            }`}
+          >
+            <button
+              className="page-link"
+              onClick={() => setCurrentPage(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              Next
+            </button>
+          </li>
+        </ul>
+      </nav>
 
       <h2>Country Statistics</h2>
       <table border="1">
