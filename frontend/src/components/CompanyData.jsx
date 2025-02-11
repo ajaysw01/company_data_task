@@ -29,7 +29,7 @@ const CompanyData = () => {
   return (
     <div>
       <h2>Company Data</h2>
-      <table border="1">
+      <table className="table table-hover">
         <thead>
           <tr>
             <th>Safe Number</th>
@@ -87,7 +87,7 @@ const CompanyData = () => {
       </nav>
 
       <h2>Country Statistics</h2>
-      <table border="1">
+      <table className="table table-striped">
         <thead>
           <tr>
             <th>Country Code</th>

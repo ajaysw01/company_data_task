@@ -104,7 +104,7 @@ async def process_csv_file(file_path: str) -> str:
             "metadata": {
                 "total_companies": len(company_data),
                 "total_countries": len(country_stats),
-                "processing_timestamp": current_timestamp  
+                "processing_timestamp": current_timestamp
             }
         }
 
@@ -123,8 +123,6 @@ async def process_csv_file(file_path: str) -> str:
 
 # new code
 def classify_credit_score(score):
-    if score is None:
-        return "Unknown"
     if score >= 85:
         return "A"
     elif 50 <= score < 85:
@@ -136,21 +134,17 @@ def classify_credit_score(score):
     return "E"
 
 def classify_credit_limit(limit):
-    if limit is None:
-        return "Unknown"
     if limit >= 250000:
         return "A"
     elif 100000 <= limit < 250000:
         return "B"
     elif 50000 <= limit < 100000:
         return "C"
-    elif limit >= 0:
+    elif limit < 50000:
         return "D"
     return "E"
 
 def classify_turnover(revenue):
-    if revenue is None:
-        return "Unknown"
     if revenue >= 100000:
         return "A"
     elif 50000 <= revenue < 100000:

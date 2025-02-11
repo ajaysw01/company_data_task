@@ -77,3 +77,4 @@ async def process_csv_v2():
         logger.error(f"Unexpected error: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Unexpected error occurred: {str(e)}")
 
+
