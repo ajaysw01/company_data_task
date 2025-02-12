@@ -1,9 +1,11 @@
+from fastapi import Depends
 import os
 import json
 from fastapi import HTTPException, APIRouter
 from fastapi.responses import JSONResponse
 import logging
-from ..services.processing_csv import process_csv_file, process_csv_file_v2
+from app.api.services.processing_csv import process_csv_file, process_csv_file_v2
+from app.api.auth.oauth2 import get_current_user
 
 logger = logging.getLogger("Process Csv Routes")
 
@@ -51,7 +53,7 @@ async def process_csv():
 
 #new file
 @router.get("/process_csv_v2")
-async def process_csv_v2():
+async def process_csv_v2(current_user: dict=Depends(get_current_user)):
     try:
         logger.info("Starting process_csv_v2 route")
 
