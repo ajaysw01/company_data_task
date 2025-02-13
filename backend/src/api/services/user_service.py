@@ -1,9 +1,8 @@
-from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
-from app.api.db import  models
-from app.api.utils import hashing,schemas
-from app.api.config.config import get_settings
-from app.api.customexception.exceptions import UserExistsException, UserNotFoundException
+from src.api.utils import hashing
+from src.api.models import schemas, models
+from src.api.configurations.config import get_settings
+from src.api.customexception.exceptions import UserExistsException, UserNotFoundException
 
 settings = get_settings()
 

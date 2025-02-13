@@ -1,12 +1,12 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.config.config import get_settings
-from app.api.customexception.exceptions import AuthException, InvalidCredentialsException, UserExistsException, UserNotFoundException
-from app.api.db.database import Base, engine
-from app.api.routes import  processing_csv, user
-from app.api.auth import autentication
-from app.api.customexception import exception_handlers
+from src.api.customexception.exceptions import AuthException, InvalidCredentialsException, UserExistsException, UserNotFoundException
+from src.api.configurations.config import get_settings
+from src.api.database.db_conn import Base, engine
+from src.api.controller import  csv_controller, user_controller
+from src.api.auth import autentication
+from src.api.customexception import exception_handlers
 import time
 
 Base.metadata.create_all(bind=engine)
@@ -32,9 +32,9 @@ app.add_exception_handler(InvalidCredentialsException, exception_handlers.invali
 app.add_exception_handler(UserNotFoundException, exception_handlers.user_not_found_exception_handler)
 
 
-app.include_router(user.router, prefix=settings.API_PREFIX + "/users", tags=["User Registratration"])
+app.include_router(user_controller.router, prefix=settings.API_PREFIX + "/users", tags=["User Registratration"])
 app.include_router(autentication.router, prefix=settings.API_PREFIX + "/auth", tags=["Login"])
-app.include_router(processing_csv.router, prefix=settings.API_PREFIX + "/csv", tags=["Process CSV"])
+app.include_router(csv_controller.router, prefix=settings.API_PREFIX + "/csv", tags=["Process CSV"])
 
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):

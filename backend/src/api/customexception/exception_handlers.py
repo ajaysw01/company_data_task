@@ -1,6 +1,6 @@
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from app.api.customexception.exceptions import (
+from src.api.customexception.exceptions import (
     AuthException, 
     UserExistsException, 
     InvalidCredentialsException, 
