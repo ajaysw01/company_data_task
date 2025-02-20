@@ -1,30 +1,49 @@
-from datetime import datetime, timedelta
-from jose import JWTError, jwt
-from ..configurations.config import  get_settings
+from datetime import datetime, timedelta, timezone
+import logging
+import jwt
+from jwt import ExpiredSignatureError, InvalidTokenError
+from src.api.configurations.config import get_settings
+from src.api.customexception.exceptions import AuthException
 
-SECRET_KEY = get_settings().SECRET_KEY
-ALGORITHM = get_settings().ALGORITHM
-ACCESS_TOKEN_EXPIRE_MINUTES = int(get_settings().ACCESS_TOKEN_EXPIRE_MINUTES)
-
-
-def create_access_token(data: dict, expires_delta: timedelta = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-    return encoded_jwt
+# Fetch settings
+settings = get_settings()
+SECRET_KEY = settings.SECRET_KEY
+ALGORITHM = settings.ALGORITHM
+ACCESS_TOKEN_EXPIRE_MINUTES = int(settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
 
-def verify_token(token: str, credentials_exception):
+def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
+    now = datetime.now(timezone.utc)
+    expire = now + (expires_delta if expires_delta else timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
+    payload = data.copy()
+    payload.update({"exp": expire})
+
+    try:
+        token = jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+        logging.info(f"Token created for user {data.get('sub')}, expires at {expire}")
+    except Exception as e:
+        logging.exception("Error encoding JWT: %s", e)
+        raise AuthException("Error creating token")
+
+    return token
+
+
+def verify_token(token: str) -> dict:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        email: str = payload.get("sub")
-        if email is None:
-            raise credentials_exception
+        if "sub" not in payload:
+            logging.error("Token payload missing 'sub' claim.")
+            raise AuthException("Invalid token payload")
+
+        logging.info(f"Token verified successfully for user: {payload.get('sub')}")
         return payload
-    except JWTError:
-        raise credentials_exception
+
+    except ExpiredSignatureError as exc:
+        logging.warning("Token expired: %s", exc)
+        raise AuthException("Token has expired") from exc
+    except InvalidTokenError as exc:
+        logging.warning("Invalid token: %s", exc)
+        raise AuthException("Invalid token") from exc
+    except Exception as e:
+        logging.exception("Error verifying JWT: %s", e)
+        raise AuthException("Error verifying token")

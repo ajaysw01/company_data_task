@@ -10,14 +10,18 @@ from src.api.customexception.exceptions import AuthException
 settings = get_settings()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_PREFIX}/auth/login")
 
+
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
-    credentials_exception = AuthException("Could not validate credentials")
+    try:
+        payload = verify_token(token)
+        email: str = payload.get("sub")
+        user = db.query(User).filter(User.email == email).first()
+        if user is None:
+            raise AuthException("User not found")
 
-    payload = verify_token(token, credentials_exception)
-    email: str = payload.get("sub")
+        return user
 
-    user = db.query(User).filter(User.email == email).first()
-    if user is None:
-        raise AuthException("User not found")
-
-    return user
+    except AuthException as e:
+        raise e
+    except Exception as e:
+        raise AuthException("Could not validate credentials") from e

@@ -10,7 +10,7 @@ router = APIRouter()
 logger = logging.getLogger("Process Csv Routes")
 
 #new file
-@router.get("/process_csv_v2")
+@router.get("/process_csv")
 async def process_csv_v2(current_user: dict=Depends(get_current_user)):
     try:
         logger.info("Starting process_csv_v2 route")

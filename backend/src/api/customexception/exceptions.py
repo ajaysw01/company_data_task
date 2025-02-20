@@ -22,10 +22,10 @@ class InvalidCredentialsException(HTTPException):
             detail=detail
         )
 
-class UserNotFoundException(HTTPException) : 
-    def __init__(self, detail : str = "User Not Found !"):
-        super.__init__(
-            status_code= status.HTTP_404_NOT_FOUND,
+class UserNotFoundException(HTTPException):
+    def __init__(self, detail: str = "User Not Found !"):
+        super().__init__(
+            status_code=status.HTTP_404_NOT_FOUND,
             detail=detail
         )
 
